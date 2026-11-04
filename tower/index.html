@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Башня тьмы</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&display=swap">
+<style>
+:root{box-sizing:border-box;--bg:#0d0b10;--panel:#1a161f;--line:#3a3340;--ink:#e6dcc4;--muted:#8d8397;--ember:#d98a2b;--on:#1a0e02;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Unbounded",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px;min-height:100vh;user-select:none;-webkit-user-select:none}
+.wrap{position:relative;width:100%;max-width:800px;line-height:0}
+canvas{width:100%;height:auto;border-radius:14px;touch-action:none;display:block;background:#0d0b10}
+.row{display:flex;gap:8px;width:100%;max-width:800px}
+button{font:inherit;color:inherit;cursor:pointer}
+.act{flex:1;border:0;border-radius:999px;padding:11px;background:var(--ember);color:var(--on);font-weight:600;font-size:12px;touch-action:manipulation}
+.act:disabled{opacity:.4}
+#ups{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%;max-width:800px}
+.up{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:10px;text-align:left;display:flex;flex-direction:column;gap:3px;font-size:12px;touch-action:manipulation}
+.up b{font-size:12px}.up span{color:var(--muted);font-size:11px}.up small{color:var(--ember);font-size:12px;font-weight:600}
+.up.lock{opacity:.45}
+#rs{position:absolute;left:50%;top:62%;transform:translateX(-50%);border:0;border-radius:999px;padding:12px 28px;background:var(--ember);color:var(--on);font-weight:600;font-size:14px;line-height:1.2}
+#rs[hidden]{display:none}
+.hint{font-size:11px;color:var(--muted);margin:0;text-align:center;max-width:620px;line-height:1.5}
+@keyframes okf{0%,65%{background:#22c55e;color:#fff;border-color:#22c55e}}
+@keyframes errf{0%,65%{background:#ef4444;color:#fff;border-color:#ef4444}}
+.ok{animation:okf .6s}.err{animation:errf .6s}
+</style>
+</head>
+<body>
+<div class="wrap"><canvas id="c" width="800" height="520"></canvas><button id="rs" hidden></button></div>
+<div class="row"><button class="act" id="sp"></button><button class="act" id="sk"></button></div>
+<div id="ups"></div>
+<p class="hint" id="hint"></p>
+<script>
+(function(){
+'use strict';
+/* ================= 1. КОНСТАНТЫ И ЛОКАЛИЗАЦИЯ ================= */
+var W = 800, H = 520, CX = 400, CY = 270, SQ = 0.5;   // SQ — сжатие оси Y: «вид сверху-сбоку» (псевдо-изометрия)
+var RING = 380, TOWER_R = 26, MAXLV = 10;
+var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+var lang = 'en'; try { lang = localStorage.getItem('hub-lang') || (/^ru/i.test(navigator.language||'') ? 'ru' : 'en'); } catch(e){}
+if (lang !== 'ru') lang = 'en';
+var TX = {
+ ru:{title:'Башня тьмы',wave:'Волна',coins:'Монеты',over:'Башня пала',reached:'Достигнута волна',best:'Рекорд',again:'Заново',spell:'Заклинание',skip:'След. волна',
+     locked:'Нужно улучшений: ',max:'МАКС',next:'Следующая волна через ',hint:'Клик/тап по полю — выстрел из лука. Меч бьёт сам. Пробел — заклинание, 1–7 — улучшения.'},
+ en:{title:'Dark Tower',wave:'Wave',coins:'Coins',over:'The tower has fallen',reached:'Wave reached',best:'Best',again:'Again',spell:'Spell',skip:'Next wave',
+     locked:'Upgrades needed: ',max:'MAX',next:'Next wave in ',hint:'Click/tap the field to shoot the bow. The sword swings by itself. Space — spell, 1–7 — upgrades.'}
+};
+function t(k){ return TX[lang][k]; }
+document.documentElement.lang = lang; document.title = t('title');
+document.getElementById('hint').textContent = t('hint');
+
+/* ================= 2. ДАННЫЕ: УЛУЧШЕНИЯ БАШНИ =================
+   gate — сколько всего уровней улучшений нужно суммарно, чтобы открыть ветку.
+   Так автоматизация открывается постепенно: сначала вручную (лук, меч), потом баллисты, турели, ловушки. */
+var UP = [
+ {id:'wall',    ru:'Стены',               en:'Walls',          base:40, gate:0},
+ {id:'bow',     ru:'Лук',                 en:'Bow',            base:30, gate:0},
+ {id:'sword',   ru:'Меч',                 en:'Sword',          base:35, gate:0},
+ {id:'magic',   ru:'Боевая магия',        en:'Battle magic',   base:60, gate:0},
+ {id:'ballista',ru:'Баллисты (авто)',     en:'Ballistae (auto)',base:90, gate:5},
+ {id:'turret',  ru:'Магич. турели (авто)',en:'Arcane turrets', base:120,gate:9},
+ {id:'traps',   ru:'Ловушки (авто)',      en:'Spike traps',    base:80, gate:13}
+];
+var lv, st;                                  // lv — уровни, st — рассчитанные характеристики
+function cost(u){ return Math.round(u.base * Math.pow(1.55, lv[u.id])); }   // цена растёт на 55% за уровень
+function total(){ var s = 0; for (var k in lv) s += lv[k]; return s; }
+/* Все формулы урона/скорости в одном месте. kind: p — физика (броня), m — магия (сопротивление) */
+function calcStats(){
+  var l = lv; st = {
+    maxHp: 200 + 60*l.wall, regen: 0.6*l.wall,                                   // стены: HP и регенерация
+    bowDmg: 10 + 6*l.bow, bowCd: Math.max(.16, .6 - .045*l.bow), bowPierce: l.bow >= 5 ? 1 : 0,
+    swDmg: 12 + 8*l.sword, swR: 60 + 5*l.sword, swCd: Math.max(.35, .9 - .06*l.sword),   // меч бьёт по площади сам
+    spDmg: 40 + 28*l.magic, spR: 110 + 10*l.magic, spCd: Math.max(3, 10 - .7*l.magic),   // магическая вспышка
+    bN: l.ballista ? Math.min(4, 1 + ((l.ballista - 1) >> 1)) : 0,                // +1 баллиста каждые 2 уровня
+    bDmg: 26 + 14*l.ballista, bCd: Math.max(.5, 1.7 - .1*l.ballista),
+    tN: Math.min(3, l.turret), tDmg: 8 + 7*l.turret, tCd: Math.max(.3, 1 - .06*l.turret),
+    trN: l.traps ? Math.min(12, 2 + 2*l.traps) : 0, trDmg: 22 + 14*l.traps
+  };
+}
+
+/* ================= 3. ДАННЫЕ: ВРАГИ =================
+   hp, sp — скорость, ar/mr — броня/сопротивление магии, rw — монеты, dmg — урон башне в сек.,
+   cost — «стоимость» в бюджете волны, from — с какой волны появляется, w — вес при выборе */
+var EN = {
+ ghoul: {hp:30, sp:38, ar:0,  mr:0,  rw:2, dmg:6,  cost:1,   from:1, w:5, col:'#6b7a4a', r:9},
+ wolf:  {hp:18, sp:80, ar:0,  mr:0,  rw:2, dmg:4,  cost:1.2, from:2, w:3, col:'#7d7f8a', r:8},
+ brute: {hp:110,sp:26, ar:40, mr:0,  rw:6, dmg:16, cost:4,   from:4, w:2, col:'#7a3030', r:13},
+ wraith:{hp:60, sp:44, ar:0,  mr:50, rw:5, dmg:10, cost:3,   from:6, w:2, col:'#5a4a9a', r:10}
+};
+// Итоговый урон = сырой * 100 / (100 + защита). Броня 40 => -29% физ. урона, сопр. 50 => -33% магии
+function dealDamage(e, raw, kind){
+  var d = raw * 100 / (100 + (kind === 'm' ? e.mr : e.ar));
+  e.hp -= d; e.flash = .08;
+  if (e.hp <= 0 && !e.dead){ e.dead = true; g.coins += e.rw; g.kills++; }
+}
+
+/* ================= 4. СОСТОЯНИЕ ИГРЫ ================= */
+var g, best = 0;
+try { best = parseInt(localStorage.getItem('tower-best') || '0', 10) || 0; } catch(e){}
+function newGame(){
+  lv = {wall:0, bow:1, sword:1, magic:0, ballista:0, turret:0, traps:0};   // старт: только лук и меч
+  calcStats();
+  g = {hp: st.maxHp, coins: 0, wave: 0, kills: 0, state: 'play', cd: 4, queue: [], qt: 0, active: false,
+       en: [], pr: [], fx: [], bow: 0, sw: 0, sp: 0, b: [0,0,0,0], tu: [0,0,0], tr: [], aim: null, hold: false, uiT: 0};
+  document.getElementById('rs').hidden = true; buildUI();
+}
+
+/* ================= 5. СПАВН ВОЛН =================
+   Бюджет волны растёт квадратично; враги приходят группами с одного направления (угла), разные группы — с разных сторон.
+   Здоровье врагов масштабируется на +10% за волну. */
+function startWave(){
+  g.wave++; g.active = true; g.queue = []; g.qt = 0;
+  var n = g.wave, budget = 6 + n*5 + n*n*0.4, spent = 0, time = 0;
+  var pool = Object.keys(EN).filter(function(k){ return EN[k].from <= n; });
+  var gap = Math.max(.6, 2.2 - .06*n);                       // пауза между группами
+  while (spent < budget){
+    var type = pick(pool), size = 2 + Math.floor(Math.random()*4), ang = Math.random()*Math.PI*2;
+    for (var i = 0; i < size && spent < budget; i++){
+      g.queue.push({t: time, type: type, ang: ang + (Math.random()-.5)*.5});
+      spent += EN[type].cost; time += .35;                    // внутри группы — частый поток
+    }
+    time += gap;
+  }
+}
+function pick(pool){                                          // взвешенный случайный выбор типа врага
+  var sum = 0, i; pool.forEach(function(k){ sum += EN[k].w; });
+  var r = Math.random()*sum;
+  for (i = 0; i < pool.length; i++){ r -= EN[pool[i]].w; if (r <= 0) return pool[i]; }
+  return pool[0];
+}
+function spawn(q){
+  var d = EN[q.type], m = 1 + .10*(g.wave - 1);
+  g.en.push({type: q.type, x: Math.cos(q.ang)*RING, y: Math.sin(q.ang)*RING, hp: d.hp*m, sp: d.sp, ar: d.ar, mr: d.mr,
+             rw: d.rw, dmg: d.dmg, col: d.col, r: d.r, slow: 0, flash: 0, dead: false});
+}
+
+/* ================= 6. ОРУЖИЕ ================= */
+function nearest(x, y, range){
+  var b = null, bd = range*range;
+  g.en.forEach(function(e){ var d = (e.x-x)*(e.x-x) + (e.y-y)*(e.y-y); if (!e.dead && d < bd){ bd = d; b = e; } });
+  return b;
+}
+function shoot(x, y, tx, ty, o){                              // универсальный снаряд (стрела, болт, магический шар)
+  var dx = tx-x, dy = ty-y, d = Math.hypot(dx, dy) || 1;
+  g.pr.push({x:x, y:y, vx:dx/d*o.sp, vy:dy/d*o.sp, dmg:o.dmg, kind:o.kind, pierce:o.pierce||0, col:o.col, slow:o.slow||0, life:1.6, hit:[]});
+}
+function castSpell(){                                         // ручная магия: вспышка вокруг башни, ум. магией
+  if (!lv.magic || g.sp > 0 || g.state !== 'play') return;
+  g.sp = st.spCd;
+  g.en.forEach(function(e){ if (Math.hypot(e.x, e.y) <= st.spR) dealDamage(e, st.spDmg, 'm'); });
+  g.fx.push({k:'ring', x:0, y:0, r:st.spR, t:.45, m:.45, col:'#8f6bff'});
+}
+function slotPos(i, n, rad, off){ var a = off + i*Math.PI*2/Math.max(n,1); return {x: Math.cos(a)*rad, y: Math.sin(a)*rad}; }
+
+/* ================= 7. ОБНОВЛЕНИЕ ЛОГИКИ (шаг dt) ================= */
+function update(dt){
+  if (g.state !== 'play') return;
+  var i;
+  // --- волны: отсчёт до старта и спавн из очереди
+  if (!g.active){ g.cd -= dt; if (g.cd <= 0) startWave(); }
+  else {
+    g.qt += dt;
+    while (g.queue.length && g.queue[0].t <= g.qt) spawn(g.queue.shift());
+    if (!g.queue.length && !g.en.length){ g.active = false; g.cd = 6; }
+  }
+  // --- башня: регенерация
+  g.hp = Math.min(st.maxHp, g.hp + st.regen*dt);
+  // --- враги: идут к башне, при контакте бьют её
+  g.en.forEach(function(e){
+    e.slow = Math.max(0, e.slow - dt); e.flash = Math.max(0, e.flash - dt);
+    var d = Math.hypot(e.x, e.y);
+    if (d <= TOWER_R + e.r) g.hp -= e.dmg * .7 * dt;
+    else { var s = e.sp * (e.slow > 0 ? .6 : 1) * dt; e.x -= e.x/d*s; e.y -= e.y/d*s; }
+  });
+  // --- ручной лук: стреляем в точку касания/клика, пока зажато
+  g.bow -= dt;
+  if (g.hold && g.aim && g.bow <= 0){
+    g.bow = st.bowCd; shoot(0, 0, g.aim.x, g.aim.y, {sp:380, dmg:st.bowDmg, kind:'p', pierce:st.bowPierce, col:'#d8cfb8'});
+  }
+  // --- меч: сам рубит всех в радиусе (базовая автоматика)
+  g.sw -= dt;
+  if (g.sw <= 0 && nearest(0, 0, st.swR)){
+    g.sw = st.swCd;
+    g.en.forEach(function(e){ if (Math.hypot(e.x, e.y) <= st.swR + e.r) dealDamage(e, st.swDmg, 'p'); });
+    g.fx.push({k:'arc', x:0, y:0, r:st.swR, t:.15, m:.15, col:'#e6dcc4'});
+  }
+  g.sp = Math.max(0, g.sp - dt);
+  // --- баллисты: ближайшая цель в радиусе 300, болт пробивает 2 врагов
+  for (i = 0; i < st.bN; i++){
+    g.b[i] -= dt; var p = slotPos(i, 4, 42, Math.PI/4), tg = nearest(p.x, p.y, 300);
+    if (g.b[i] <= 0 && tg){ g.b[i] = st.bCd; shoot(p.x, p.y, tg.x, tg.y, {sp:430, dmg:st.bDmg, kind:'p', pierce:2, col:'#c9a45a'}); }
+  }
+  // --- магические турели: магия + замедление
+  for (i = 0; i < st.tN; i++){
+    g.tu[i] -= dt; var q = slotPos(i, 3, 34, 0), tg2 = nearest(q.x, q.y, 240);
+    if (g.tu[i] <= 0 && tg2){ g.tu[i] = st.tCd; shoot(q.x, q.y, tg2.x, tg2.y, {sp:260, dmg:st.tDmg, kind:'m', col:'#8f6bff', slow:1.5}); }
+  }
+  // --- ловушки: кольцо на радиусе 140, срабатывают при касании, перезарядка 4 сек
+  while (g.tr.length < st.trN) g.tr.push(0);
+  for (i = 0; i < st.trN; i++){
+    g.tr[i] = Math.max(0, g.tr[i] - dt);
+    if (g.tr[i] > 0) continue;
+    var tp = slotPos(i, st.trN, 140, 0), hitAny = false;
+    g.en.forEach(function(e){ if (!e.dead && Math.hypot(e.x-tp.x, e.y-tp.y) < e.r + 12){ dealDamage(e, st.trDmg, 'p'); hitAny = true; } });
+    if (hitAny) g.tr[i] = 4;
+  }
+  // --- снаряды: движение и столкновения
+  g.pr.forEach(function(s){
+    s.x += s.vx*dt; s.y += s.vy*dt; s.life -= dt;
+    g.en.forEach(function(e){
+      if (s.life <= 0 || e.dead || s.hit.indexOf(e) >= 0) return;
+      if (Math.hypot(e.x-s.x, e.y-s.y) < e.r + 4){
+        dealDamage(e, s.dmg, s.kind); if (s.slow) e.slow = s.slow; s.hit.push(e);
+        if (s.pierce-- <= 0) s.life = 0;
+      }
+    });
+  });
+  g.pr = g.pr.filter(function(s){ return s.life > 0; });
+  g.en = g.en.filter(function(e){ return !e.dead; });
+  g.fx.forEach(function(f){ f.t -= dt; }); g.fx = g.fx.filter(function(f){ return f.t > 0; });
+  // --- поражение
+  if (g.hp <= 0) gameOver();
+  g.uiT -= dt; if (g.uiT <= 0){ g.uiT = .2; refreshUI(); }
+}
+function gameOver(){
+  g.state = 'over'; g.hold = false;
+  if (g.wave > best){ best = g.wave; try { localStorage.setItem('tower-best', String(best)); } catch(e){} }
+  var b = document.getElementById('rs'); b.textContent = t('again'); b.hidden = false;
+}
+
+/* ================= 8. ОТРИСОВКА ================= */
+function sx(x){ return CX + x; }
+function sy(y){ return CY + y*SQ; }
+function ell(x, y, rx, ry, fill){ ctx.fillStyle = fill; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 7); ctx.fill(); }
+function drawEnemy(e){
+  var x = sx(e.x), y = sy(e.y);
+  ell(x, y, e.r, e.r*SQ, 'rgba(0,0,0,.45)');
+  ctx.fillStyle = e.flash > 0 ? '#fff' : (e.slow > 0 ? '#6a7fb0' : e.col);
+  ctx.beginPath(); ctx.arc(x, y - e.r, e.r, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ff3b2f'; ctx.fillRect(x - e.r*.5, y - e.r*1.3, 2, 2); ctx.fillRect(x + e.r*.2, y - e.r*1.3, 2, 2);
+  if (e.type === 'brute'){ ctx.fillStyle = '#555'; ctx.fillRect(x - e.r, y - e.r*1.1, e.r*2, 3); }   // броня
+  var mx = EN[e.type].hp * (1 + .10*(g.wave - 1));
+  if (e.hp < mx){ ctx.fillStyle = '#000'; ctx.fillRect(x - 10, y - e.r*2 - 6, 20, 3); ctx.fillStyle = '#b22'; ctx.fillRect(x - 10, y - e.r*2 - 6, 20*Math.max(0, e.hp/mx), 3); }
+}
+function drawTower(){
+  var x = CX, y = CY;
+  ell(x, y, 48, 24, 'rgba(0,0,0,.5)');
+  ctx.fillStyle = '#3a3640'; ctx.fillRect(x - 30, y - 70, 60, 70); ell(x, y, 30, 15, '#3a3640');
+  ctx.fillStyle = '#2b2830'; ctx.fillRect(x - 30, y - 70, 14, 70);                       // тень слева
+  ell(x, y - 70, 30, 15, '#57525e');
+  ctx.fillStyle = '#57525e'; for (var i = -2; i <= 2; i += 2) ctx.fillRect(x + i*11 - 5, y - 82, 10, 12);   // зубцы
+  ctx.fillStyle = '#8a1c1c'; ctx.fillRect(x - 5, y - 40, 10, 22);                         // знамя/дверь
+  // баллисты и турели на стенах (визуально отражают прокачку)
+  for (i = 0; i < st.bN; i++){ var p = slotPos(i, 4, 42, Math.PI/4); ctx.fillStyle = '#c9a45a'; ctx.fillRect(sx(p.x) - 6, sy(p.y) - 10, 12, 8); }
+  for (i = 0; i < st.tN; i++){ var q = slotPos(i, 3, 34, 0); ell(sx(q.x), sy(q.y) - 6, 6, 6, '#8f6bff'); }
+}
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  var gr = ctx.createRadialGradient(CX, CY, 20, CX, CY, 400);
+  gr.addColorStop(0, '#2a2521'); gr.addColorStop(1, '#0d0b10');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(230,220,196,.08)'; ctx.beginPath(); ctx.ellipse(CX, CY, RING, RING*SQ, 0, 0, 7); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(CX, CY, st.swR, st.swR*SQ, 0, 0, 7); ctx.stroke();          // зона меча
+  // ловушки
+  for (var i = 0; i < st.trN; i++){
+    var tp = slotPos(i, st.trN, 140, 0), x = sx(tp.x), y = sy(tp.y), armed = !g.tr[i];
+    ctx.fillStyle = armed ? '#b22' : '#443'; ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x - 4, y - 9); ctx.lineTo(x, y);
+    ctx.lineTo(x + 4, y - 9); ctx.lineTo(x + 8, y); ctx.fill();
+  }
+  var behind = g.en.filter(function(e){ return e.y < 0; }), front = g.en.filter(function(e){ return e.y >= 0; });
+  behind.sort(function(a, b){ return a.y - b.y; }).forEach(drawEnemy);
+  drawTower();
+  front.sort(function(a, b){ return a.y - b.y; }).forEach(drawEnemy);
+  g.pr.forEach(function(s){ ctx.fillStyle = s.col; ctx.beginPath(); ctx.arc(sx(s.x), sy(s.y) - 26, s.kind === 'm' ? 4 : 2.5, 0, 7); ctx.fill(); });
+  g.fx.forEach(function(f){
+    ctx.globalAlpha = f.t / f.m; ctx.strokeStyle = f.col; ctx.lineWidth = f.k === 'ring' ? 4 : 3;
+    ctx.beginPath(); ctx.ellipse(sx(f.x), sy(f.y), f.r, f.r*SQ, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  });
+  // HUD
+  ctx.fillStyle = '#000'; ctx.fillRect(12, 12, 200, 12); ctx.fillStyle = '#b22'; ctx.fillRect(12, 12, 200*Math.max(0, g.hp/st.maxHp), 12);
+  ctx.fillStyle = '#e6dcc4'; ctx.font = '600 13px Unbounded, system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(Math.ceil(g.hp) + ' / ' + st.maxHp, 12, 44);
+  ctx.fillText(t('coins') + ': ' + g.coins, 12, 64);
+  ctx.textAlign = 'right'; ctx.fillText(t('wave') + ' ' + g.wave + '   ' + t('best') + ' ' + best, W - 12, 24);
+  if (!g.active && g.state === 'play'){ ctx.textAlign = 'center'; ctx.fillText(t('next') + Math.ceil(g.cd) + 'c'.replace('c', lang === 'ru' ? ' с' : ' s'), CX, 40); }
+  if (g.state === 'over'){
+    ctx.fillStyle = 'rgba(8,6,10,.78)'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#e6dcc4'; ctx.textAlign = 'center';
+    ctx.font = '600 28px Unbounded, system-ui, sans-serif'; ctx.fillText(t('over'), CX, 220);
+    ctx.font = '400 16px Unbounded, system-ui, sans-serif'; ctx.fillText(t('reached') + ': ' + g.wave, CX, 260);
+  }
+}
+
+/* ================= 9. ИНТЕРФЕЙС (улучшения) ================= */
+var upsEl = document.getElementById('ups'), spBtn = document.getElementById('sp'), skBtn = document.getElementById('sk');
+function flash(el, ok){ el.classList.remove('ok','err'); void el.offsetWidth; el.classList.add(ok ? 'ok' : 'err'); }
+function buildUI(){
+  upsEl.innerHTML = '';
+  UP.forEach(function(u, i){
+    var b = document.createElement('button'); b.className = 'up'; b.id = 'up-' + u.id;
+    b.addEventListener('click', function(){ buy(i); }); upsEl.appendChild(b);
+  });
+  spBtn.textContent = t('spell'); skBtn.textContent = t('skip'); refreshUI();
+}
+function refreshUI(){
+  UP.forEach(function(u){
+    var b = document.getElementById('up-' + u.id), L = lv[u.id], locked = total() < u.gate;
+    b.classList.toggle('lock', locked);
+    b.innerHTML = '<b>' + u[lang] + '</b><span>Lv ' + L + '/' + MAXLV + '</span><small>' +
+      (L >= MAXLV ? t('max') : locked ? '🔒 ' + t('locked') + (u.gate - total()) : '● ' + cost(u)) + '</small>';
+  });
+  spBtn.disabled = !lv.magic || g.sp > 0; skBtn.disabled = g.active || g.state !== 'play';
+}
+function buy(i){                                              // покупка: зелёная/красная вспышка кнопки
+  var u = UP[i], b = document.getElementById('up-' + u.id);
+  if (g.state !== 'play' || lv[u.id] >= MAXLV || total() < u.gate || g.coins < cost(u)){ flash(b, false); return; }
+  g.coins -= cost(u); lv[u.id]++; var old = st.maxHp; calcStats(); g.hp += st.maxHp - old;
+  flash(b, true); refreshUI();
+}
+
+/* ================= 10. УПРАВЛЕНИЕ: ПК + ТЕЛЕФОН ================= */
+function toWorld(e){                                          // экранные координаты -> мировые (учёт масштаба canvas)
+  var r = cv.getBoundingClientRect();
+  return {x: (e.clientX - r.left) * W / r.width - CX, y: ((e.clientY - r.top) * H / r.height - CY) / SQ};
+}
+cv.addEventListener('pointerdown', function(e){ e.preventDefault(); g.aim = toWorld(e); g.hold = true; });
+cv.addEventListener('pointermove', function(e){ if (g.hold) g.aim = toWorld(e); });
+['pointerup','pointercancel','pointerleave'].forEach(function(n){ cv.addEventListener(n, function(){ g.hold = false; }); });
+spBtn.addEventListener('click', function(){ var ok = lv.magic && g.sp <= 0; castSpell(); flash(spBtn, !!ok); });
+skBtn.addEventListener('click', function(){ if (!g.active && g.state === 'play'){ g.cd = 0; flash(skBtn, true); } else flash(skBtn, false); });
+document.getElementById('rs').addEventListener('click', newGame);
+window.addEventListener('keydown', function(e){
+  if (e.code === 'Space'){ e.preventDefault(); castSpell(); }
+  else if (e.key >= '1' && e.key <= '7') buy(+e.key - 1);
+  else if (e.key === 'Enter' && g.state === 'over') newGame();
+});
+
+/* ================= 11. ГЛАВНЫЙ ЦИКЛ ================= */
+var last = performance.now();
+function loop(now){
+  var dt = Math.min(.05, (now - last) / 1000); last = now;   // ограничиваем dt (вкладка в фоне)
+  update(dt); draw(); requestAnimationFrame(loop);
+}
+newGame(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
