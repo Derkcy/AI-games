@@ -3,245 +3,225 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Игровой пруд</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&display=swap">
+<title>Карп в пруду</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&display=swap">
 <style>
 :root{
   box-sizing:border-box;
-  --page:#d9ccf7; --card:#ffffff; --ink:#111111; --muted:#5d5675; --line:#b9a6ea;
-  --water:#111111; --soft:#c9b6f2; --accent:#ffd60a; --on-accent:#111111; --coin:#ffd60a;
+  --page:#d9ccf7; --ink:#111111; --muted:#5d5675; --water:#111111; --accent:#ffd60a; --on-accent:#111111;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){--page:#120d1f;--card:#1e1733;--ink:#ffffff;--muted:#b4a9d6;--line:#3d3163;--water:#3a2a70;--soft:#6e56b8;}
+  :root:not([data-theme="light"]){--page:#120d1f;--ink:#ffffff;--muted:#b4a9d6;--water:#3a2a70;}
 }
-:root[data-theme="dark"]{--page:#120d1f;--card:#1e1733;--ink:#ffffff;--muted:#b4a9d6;--line:#3d3163;--water:#3a2a70;--soft:#6e56b8;}
+:root[data-theme="dark"]{--page:#120d1f;--ink:#ffffff;--muted:#b4a9d6;--water:#3a2a70;}
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--page);color:var(--ink);font-family:"Unbounded",system-ui,sans-serif;min-height:100vh}
-main{max-width:520px;margin:0 auto;padding:16px}
-button{font:inherit;color:inherit;cursor:pointer}
-a{color:inherit;text-decoration:none}
-:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-
-.top{display:flex;align-items:center;gap:12px;background:var(--water);color:#f3e9d2;border-radius:20px;padding:12px 14px}
-.avatar{width:46px;height:46px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:24px;border:0;flex:none}
-.who{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0;color:inherit}
-.who b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lvl{height:6px;border-radius:3px;background:rgba(255,255,255,.2);margin-top:7px;overflow:hidden}
-.lvl i{display:block;height:100%;width:0;background:var(--coin)}
-.coins{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border-radius:999px;padding:8px 12px;font-weight:700;font-size:14px}
-.coin{width:16px;height:16px;border-radius:50%;background:var(--coin);display:inline-block;box-shadow:inset 0 0 0 3px #c98f10}
-
-h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.slot{background:var(--card);border:2px dashed var(--line);border-radius:20px;min-height:132px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;color:var(--muted)}
-.slot .ico{width:44px;height:44px;border-radius:14px;border:2px dashed var(--line);display:grid;place-items:center;font-size:20px}
-.slot b{font-size:13px;font-weight:600}
-.slot small{font-size:11px;opacity:.8}
-.slot.live{border:0;background:var(--accent);color:var(--on-accent);transition:transform .15s}
-.slot.live .ico{border:0;background:rgba(255,255,255,.35);font-size:24px}
-.slot.live:hover{transform:translateY(-2px)}
-.slot.wide{grid-column:1 / -1;min-height:100px;flex-direction:row;align-items:center;justify-content:flex-start;gap:14px}
-
-.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.big{border:0;border-radius:20px;padding:18px 14px;text-align:left;display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:15px}
-.big span{font-weight:400;font-size:11px;opacity:.85}
-.big.shop{background:var(--coin);color:#111}
-.big.prof{background:var(--water);color:#f3e9d2}
-
-.back{background:none;border:0;padding:8px 4px;font-size:13px;color:var(--muted)}
-.view{display:none}.view.on{display:block}
-.skins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.skin{background:var(--card);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;border:2px solid var(--line)}
-.skin .pic{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:34px;background:var(--soft)}
-.skin b{font-size:12px}
-.price{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}
-.skin button{border:0;border-radius:999px;padding:9px;background:#ffd60a;color:#111;font-size:12px;font-weight:600}
-.panel{background:var(--card);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.panel label{font-size:12px;color:var(--muted)}
-.panel input{font:inherit;font-size:15px;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--page);color:var(--ink);width:100%}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stat{background:var(--card);border-radius:16px;padding:14px}
-.stat b{display:block;font-size:20px}.stat span{font-size:11px;color:var(--muted)}
-.save{border:0;border-radius:999px;padding:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:14px}
-.gear{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#f3e9d2;display:grid;place-items:center;font-size:20px;flex:none;padding:0}
-.langs{display:flex;gap:8px}
-.langs button{flex:1;border:2px solid var(--line);border-radius:999px;padding:11px;background:var(--card);font-weight:600;font-size:13px}
-.langs button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-.modal{position:fixed;inset:0;z-index:10;background:rgba(17,17,17,.72);display:grid;place-items:center;padding:20px}
-.modal[hidden]{display:none}
-.modal .box{background:var(--card);border-radius:24px;padding:22px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:12px;text-align:center}
-.modal h3{margin:0 0 4px;font-size:17px}
-.modal .langs{flex-direction:column}
-.modal .langs button{padding:16px;font-size:15px}
-@keyframes okf{0%,65%{background:#22c55e;color:#fff;border-color:#22c55e}}
-@keyframes errf{0%,65%{background:#ef4444;color:#fff;border-color:#ef4444}}
-.ok{animation:okf .7s}.err{animation:errf .7s}
-@media (prefers-reduced-motion:reduce){.slot.live{transition:none}}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--page);color:var(--ink);font-family:"Unbounded",system-ui,sans-serif;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px}
+h1{font-size:clamp(20px,5vw,28px);margin:0;font-weight:700}
+.bar{display:flex;align-items:center;gap:24px;font-size:14px;color:var(--muted)}
+.bar b{color:var(--ink);font-weight:700}
+.wrap{position:relative;line-height:0}
+canvas{border-radius:18px;background:var(--water);touch-action:none;display:block;max-width:100%}
+.over{position:absolute;inset:0;border-radius:18px;background:rgba(17,17,17,.85);color:#ffffff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;line-height:1.4}
+.over p{margin:0;font-size:15px}
+.over .big{font-size:22px;font-weight:700}
+button{font:inherit;font-weight:700;font-size:15px;background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:12px 28px;cursor:pointer}
+button:focus-visible{outline:3px solid #f3e9d2;outline-offset:3px}
+.hint{font-size:12px;color:var(--muted);margin:0;text-align:center;max-width:360px;line-height:1.5}
+.dp{display:grid;grid-template-columns:repeat(3,60px);grid-template-rows:repeat(2,56px);gap:8px;user-select:none;-webkit-user-select:none}
+.dp button{padding:0;border-radius:16px;font-size:20px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.dp button:active{transform:scale(.94)}
+.dp [data-d=u]{grid-column:2;grid-row:1}
+.dp [data-d=l]{grid-column:1;grid-row:2}
+.dp [data-d=d]{grid-column:2;grid-row:2}
+.dp [data-d=r]{grid-column:3;grid-row:2}
+.pz{padding:6px 14px;font-size:12px;touch-action:manipulation}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<main>
-  <section class="view on" id="home">
-    <div class="top">
-      <button class="avatar" data-go="profile" data-i18n-aria="profile" aria-label="Профиль">🐟</button>
-      <button class="who" data-go="profile"><b id="nick">Игрок</b><div class="lvl"><i id="lvlbar"></i></div></button>
-      <div class="coins"><span class="coin"></span><span id="coins">0</span></div>
-      <button class="gear" data-go="settings" data-i18n-aria="settings" aria-label="Настройки">⚙️</button>
-    </div>
-
-    <h2 data-i18n="games">Игры</h2>
-    <div class="grid">
-      <a class="slot live" href="koi/"><span class="ico">🐟</span><div><b>Карп в пруду</b><br><small data-i18n="play">Играть</small></div></a>
-      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 2</small></div></div>
-      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 3</small></div></div>
-      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 4</small></div></div>
-      <div class="slot wide"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 5</small></div></div>
-    </div>
-
-    <h2 data-i18n="account">Твой аккаунт</h2>
-    <div class="pair">
-      <button class="big shop" data-go="shop"><b data-i18n="shop">Магазин</b><span data-i18n="shopSub">Скины за монеты</span></button>
-      <button class="big prof" data-go="profile"><b data-i18n="profile">Профиль</b><span data-i18n="profileSub">Ник и статистика</span></button>
-    </div>
-  </section>
-
-  <section class="view" id="shop">
-    <button class="back" data-go="home" data-i18n="back">← Назад</button>
-    <div class="top" style="margin-bottom:14px"><b style="flex:1" data-i18n="shopTitle">Магазин скинов</b><div class="coins"><span class="coin"></span><span class="bal">0</span></div></div>
-    <div class="skins" id="skins"></div>
-  </section>
-
-  <section class="view" id="profile">
-    <button class="back" data-go="home" data-i18n="back">← Назад</button>
-    <div class="panel">
-      <label for="name" data-i18n="nick">Твой ник</label>
-      <input id="name" maxlength="16" placeholder="Игрок" data-i18n-ph="player" autocomplete="off">
-      <button class="save" id="save" data-i18n="save">Сохранить ник</button>
-    </div>
-    <div class="panel" style="margin-top:12px"><label data-i18n="language">Язык</label><div class="langs"><button data-lang="ru">Русский</button><button data-lang="en">English</button></div></div>
-    <h2 data-i18n="stats">Статистика</h2>
-    <div class="stats">
-      <div class="stat"><b class="bal">0</b><span data-i18n="coinsL">монет</span></div>
-      <div class="stat"><b id="rec">0</b><span data-i18n="record">рекорд в «Карпе»</span></div>
-      <div class="stat"><b id="lvl">1</b><span id="lvlsub">уровень</span></div>
-      <div class="stat"><b id="owned">0</b><span data-i18n="ownedL">скинов куплено</span></div>
-    </div>
-  </section>
-  <section class="view" id="settings">
-    <button class="back" data-go="home" data-i18n="back">← Назад</button>
-    <h2 data-i18n="settings" style="margin-top:8px">Настройки</h2>
-    <div class="panel"><label data-i18n="language">Язык</label><div class="langs"><button data-lang="ru">Русский</button><button data-lang="en">English</button></div></div>
-  </section>
-</main>
-<div class="modal" id="langModal" hidden role="dialog" aria-modal="true" aria-label="Language">
-  <div class="box"><h3>Выбери язык / Choose language</h3><div class="langs"><button data-lang="ru">Русский</button><button data-lang="en">English</button></div></div>
+<h1 id="h1">Карп в пруду</h1>
+<div class="bar"><span><span id="lScore">Счёт</span>: <b id="score">0</b></span><span><span id="lBest">Рекорд</span>: <b id="best">0</b></span><button class="pz" id="pz" aria-label="Пауза">&#10074;&#10074;</button></div>
+<div class="wrap">
+  <canvas id="c" width="468" height="468" aria-label="Игровое поле"></canvas>
+  <div class="over" id="over">
+    <p class="big" id="title">Накорми карпа</p>
+    <p id="msg">Собирай кувшинки и не врезайся в стены и в свой хвост.</p>
+    <button id="go">Играть</button>
+  </div>
 </div>
+<div class="dp hidden" id="dp"><button data-d="u">&#9650;</button><button data-d="l">&#9664;&#xFE0E;</button><button data-d="d">&#9660;</button><button data-d="r">&#9654;&#xFE0E;</button></div>
+<p class="hint" id="hint"></p>
 
 <script>
 (function(){
-  function get(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
-  function set(k, v){ try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-  function flash(el, ok){ el.classList.remove('ok','err'); void el.offsetWidth; el.classList.add(ok ? 'ok' : 'err'); }
-  function owned(){ try { return JSON.parse(get('hub-skins', '[]')); } catch (e) { return []; } }
-  var views = ['home','shop','profile','settings'];
+  var N = 18, cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var overEl = document.getElementById('over'), titleEl = document.getElementById('title'),
+      msgEl = document.getElementById('msg'), goBtn = document.getElementById('go'),
+      scoreEl = document.getElementById('score'), bestEl = document.getElementById('best');
+  var CELL = 26, timer = null, fish, dir, queue, pad, score, best = 0, state = 'ready', tick = 0;
+
+  var touch = (window.matchMedia && matchMedia('(pointer:coarse)').matches) || 'ontouchstart' in window;
+  var lang = 'en'; try { lang = localStorage.getItem('hub-lang') || (/^ru/i.test(navigator.language || '') ? 'ru' : 'en'); } catch (e) {}
+  if (lang !== 'ru') lang = 'en';
   var T = {
-    ru: {title:'Игровой пруд',games:'Игры',play:'Играть',soon:'Скоро',slot:'Слот',account:'Твой аккаунт',shop:'Магазин',shopSub:'Скины за монеты',
-      profile:'Профиль',profileSub:'Ник и статистика',back:'← Назад',shopTitle:'Магазин скинов',nick:'Твой ник',save:'Сохранить ник',stats:'Статистика',
-      coinsL:'монет',record:'рекорд в «Карпе»',level:'уровень',xp:'опыта',ownedL:'скинов куплено',language:'Язык',settings:'Настройки',player:'Игрок',
-      buy:'Купить',bought:'Куплено',noCoins:'Не хватает монет',skins:['Золотой карп','Белый карп','Розовый карп','Ночной пруд','Лотос','Закат']},
-    en: {title:'Game Pond',games:'Games',play:'Play',soon:'Soon',slot:'Slot',account:'Your account',shop:'Shop',shopSub:'Skins for coins',
-      profile:'Profile',profileSub:'Name and stats',back:'← Back',shopTitle:'Skin shop',nick:'Your name',save:'Save name',stats:'Stats',
-      coinsL:'coins',record:'best in Koi',level:'level',xp:'XP',ownedL:'skins bought',language:'Language',settings:'Settings',player:'Player',
-      buy:'Buy',bought:'Owned',noCoins:'Not enough coins',skins:['Golden koi','White koi','Pink koi','Night pond','Lotus','Sunset']}
+    ru: {title:'Карп в пруду',score:'Счёт',best:'Рекорд',field:'Игровое поле',ready:'Накорми карпа',readyMsg:'Собирай кувшинки и не врезайся в стены и в свой хвост.',
+      play:'Играть',again:'Ещё раз',resume:'Продолжить',paused:'Пауза',pausedMsg:'Нажми пробел или кнопку, чтобы продолжить.',pausedMsgTouch:'Нажми кнопку, чтобы продолжить.',
+      record:'Новый рекорд: ',eaten:'Съедено кувшинок: ',crash:'Карп врезался. ',coinsW:'монет',xpW:'опыта',notSaved:'Прогресс не сохранён.',retry:'Ещё раз?',
+      hintPc:'Стрелки или WASD на клавиатуре. Пробел — пауза.',hintTouch:'Свайпай по полю или жми на стрелки.',
+      up:'Вверх',down:'Вниз',left:'Влево',right:'Вправо'},
+    en: {title:'Koi Pond',score:'Score',best:'Best',field:'Game field',ready:'Feed the koi',readyMsg:'Collect lily pads and avoid the walls and your own tail.',
+      play:'Play',again:'Play again',resume:'Resume',paused:'Paused',pausedMsg:'Press Space or the button to resume.',pausedMsgTouch:'Tap the button to resume.',
+      record:'New record: ',eaten:'Lily pads eaten: ',crash:'The koi crashed. ',coinsW:'coins',xpW:'XP',notSaved:'Progress not saved.',retry:'Try again?',
+      hintPc:'Arrow keys or WASD. Space to pause.',hintTouch:'Swipe on the field or use the arrow buttons.',
+      up:'Up',down:'Down',left:'Left',right:'Right'}
   };
-  var lang = get('hub-lang', ''), firstVisit = lang !== 'ru' && lang !== 'en';
-  if (firstVisit) lang = /^ru/i.test(navigator.language || '') ? 'ru' : 'en';
   function t(k){ return T[lang][k]; }
-  function qsa(sel){ return [].slice.call(document.querySelectorAll(sel)); }
-  function apply(){
+  var DIRS = {u:[0,-1], d:[0,1], l:[-1,0], r:[1,0]};
+  var dp = document.getElementById('dp'), pzBtn = document.getElementById('pz');
+  function applyLang(){
     document.documentElement.lang = lang; document.title = t('title');
-    qsa('[data-i18n]').forEach(function(n){ n.textContent = t(n.getAttribute('data-i18n')); });
-    qsa('[data-i18n-ph]').forEach(function(n){ n.placeholder = t(n.getAttribute('data-i18n-ph')); });
-    qsa('[data-i18n-aria]').forEach(function(n){ n.setAttribute('aria-label', t(n.getAttribute('data-i18n-aria'))); });
-    qsa('[data-lang]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-lang') === lang); });
-    fill(); renderSkins();
+    document.getElementById('h1').textContent = t('title');
+    document.getElementById('lScore').textContent = t('score'); document.getElementById('lBest').textContent = t('best');
+    cv.setAttribute('aria-label', t('field')); pzBtn.setAttribute('aria-label', t('paused'));
+    document.getElementById('hint').textContent = touch ? t('hintTouch') : t('hintPc');
+    [].forEach.call(dp.querySelectorAll('button'), function(b){ b.setAttribute('aria-label', t({u:'up',d:'down',l:'left',r:'right'}[b.getAttribute('data-d')])); });
+    dp.classList.toggle('hidden', !touch);
+    if (state === 'ready'){ titleEl.textContent = t('ready'); msgEl.textContent = t('readyMsg'); goBtn.textContent = t('play'); }
   }
-  var modal = document.getElementById('langModal'); modal.hidden = !firstVisit;
-  document.addEventListener('click', function(e){
-    var b = e.target.closest('[data-lang]'); if (!b) return;
-    lang = b.getAttribute('data-lang'); var ok = set('hub-lang', lang); apply();
-    qsa('[data-lang]').forEach(function(x){ if (x.getAttribute('data-lang') === lang) flash(x, ok); });
-    if (b.closest('#langModal')) setTimeout(function(){ modal.hidden = true; }, 350);
-  });
+  try { best = parseInt(localStorage.getItem('koi-best') || '0', 10) || 0; } catch (e) {}
+  bestEl.textContent = best;
 
-  function show(name){
-    if (views.indexOf(name) < 0) name = 'home';
-    views.forEach(function(v){ document.getElementById(v).classList.toggle('on', v === name); });
-    window.scrollTo(0,0);
+  function resize(){
+    var side = Math.min(window.innerWidth - 32, window.innerHeight - 220 - (touch ? 134 : 0), 468);
+    side = Math.max(240, Math.floor(side / N) * N);
+    cv.width = cv.height = side; CELL = side / N;
+    cv.style.width = cv.style.height = side + 'px';
+    draw();
   }
-  function route(){ show(location.hash.slice(1) || 'home'); }
-  document.addEventListener('click', function(e){
-    var b = e.target.closest('[data-go]'); if (!b) return;
-    var to = b.getAttribute('data-go');
-    location.hash = to === 'home' ? '' : to; route();
-  });
-  window.addEventListener('hashchange', route);
 
-  function fill(){
-    var raw = get('hub-nick', ''), custom = raw && raw !== 'Игрок' ? raw : '', coins = get('hub-coins', '0');
-    document.getElementById('nick').textContent = custom || t('player');
-    document.getElementById('name').value = custom;
-    document.getElementById('coins').textContent = coins;
-    [].forEach.call(document.querySelectorAll('.bal'), function(n){ n.textContent = coins; });
-    document.getElementById('rec').textContent = get('koi-best', '0');
-    document.getElementById('owned').textContent = owned().length;
-    var fr = parseInt(get('hub-fruits', '0'), 10) || 0, lv = Math.floor(fr / 1000) + 1, into = fr % 1000;
-    document.getElementById('lvl').textContent = lv;
-    document.getElementById('lvlsub').textContent = t('level') + ' · ' + (into / 10).toFixed(1) + ' / 100 ' + t('xp');
-    document.getElementById('lvlbar').style.width = (into / 10) + '%';
+  function reset(){
+    fish = [{x:9,y:9},{x:8,y:9},{x:7,y:9}];
+    dir = {x:1,y:0}; queue = []; score = 0; tick = 0;
+    scoreEl.textContent = 0; placePad();
   }
-  document.getElementById('save').addEventListener('click', function(){
-    var v = document.getElementById('name').value.trim();
-    flash(this, set('hub-nick', v)); fill();
-  });
 
-  var icons = ['🐠','🐟','🌸','🌙','🪷','🌅'];
-  var prices = [50,80,120,150,200,300];
-  var box = document.getElementById('skins');
-  function renderSkins(){ box.innerHTML = ''; T[lang].skins.forEach(function(n,i){
-    var d = document.createElement('div'); d.className = 'skin';
-    d.innerHTML = '<div class="pic">'+icons[i]+'</div><b>'+n+'</b><div class="price"><span class="coin"></span>'+prices[i]+'</div><button></button>';
-    var btn = d.querySelector('button');
-    btn.textContent = owned().indexOf(i) > -1 ? t('bought') : t('buy');
-    btn.addEventListener('click', function(){
-      var have = owned();
-      if (have.indexOf(i) > -1) return;
-      var coins = parseInt(get('hub-coins','0'), 10) || 0;
-      if (coins < prices[i]){
-        flash(btn, false); btn.textContent = t('noCoins');
-        setTimeout(function(){ btn.textContent = t('buy'); }, 1400); return;
-      }
-      have.push(i);
-      var ok = set('hub-coins', String(coins - prices[i])) && set('hub-skins', JSON.stringify(have));
-      flash(btn, ok);
-      if (ok){ btn.textContent = t('bought'); fill(); }
+  function placePad(){
+    var ok = false;
+    while(!ok){
+      pad = {x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)};
+      ok = !fish.some(function(s){return s.x===pad.x && s.y===pad.y;});
+    }
+  }
+
+  function setDir(dx, dy){
+    var last = queue.length ? queue[queue.length-1] : dir;
+    if (dx === -last.x && dy === -last.y) return;
+    if (dx === last.x && dy === last.y) return;
+    if (queue.length < 3) queue.push({x:dx,y:dy});
+  }
+
+  function step(){
+    if (queue.length) dir = queue.shift();
+    var h = {x:fish[0].x + dir.x, y:fish[0].y + dir.y};
+    var hitWall = h.x<0 || h.y<0 || h.x>=N || h.y>=N;
+    var hitSelf = fish.some(function(s,i){return i < fish.length-1 && s.x===h.x && s.y===h.y;});
+    if (hitWall || hitSelf) return end();
+    fish.unshift(h);
+    if (h.x===pad.x && h.y===pad.y){
+      score++; scoreEl.textContent = score; placePad();
+      if (score % 4 === 0) run();
+    } else fish.pop();
+    tick++; draw();
+  }
+
+  function speed(){ return Math.max(70, 140 - score*3); }
+  function run(){ clearInterval(timer); timer = setInterval(step, speed()); }
+
+  function start(){
+    reset(); state = 'playing'; overEl.classList.add('hidden'); run(); draw();
+    goBtn.blur();
+  }
+
+  function end(){
+    clearInterval(timer); state = 'over';
+    var rec = score > best;
+    if (rec){ best = score; bestEl.textContent = best; try { localStorage.setItem('koi-best', String(best)); } catch (e) {} }
+    var saved = false;
+    try {
+      var c = parseInt(localStorage.getItem('hub-coins') || '0', 10) || 0,
+          f = parseInt(localStorage.getItem('hub-fruits') || '0', 10) || 0;
+      localStorage.setItem('hub-coins', String(c + score));
+      localStorage.setItem('hub-fruits', String(f + score));
+      saved = true;
+    } catch (e) {}
+    titleEl.textContent = rec && score > 0 ? t('record') + score : t('eaten') + score;
+    msgEl.textContent = t('crash') + (saved ? '+' + score + ' ' + t('coinsW') + ', +' + (score / 10).toFixed(1) + ' ' + t('xpW') + '. ' : t('notSaved') + ' ') + t('retry');
+    goBtn.textContent = t('again');
+    overEl.classList.remove('hidden'); draw();
+  }
+
+  function pause(){
+    if (state === 'playing'){ clearInterval(timer); state = 'paused';
+      titleEl.textContent = t('paused'); msgEl.textContent = touch ? t('pausedMsgTouch') : t('pausedMsg');
+      goBtn.textContent = t('resume'); overEl.classList.remove('hidden'); }
+    else if (state === 'paused'){ state = 'playing'; overEl.classList.add('hidden'); run(); }
+  }
+
+  function draw(){
+    var w = cv.width, c = CELL, i, s;
+    ctx.clearRect(0,0,w,w);
+    ctx.fillStyle = 'rgba(255,255,255,.035)';
+    for (i=0;i<N;i++) for (var j=0;j<N;j++) if ((i+j)%2===0) ctx.fillRect(i*c,j*c,c,c);
+    if (!fish) return;
+    // lily pad
+    var px = pad.x*c + c/2, py = pad.y*c + c/2;
+    ctx.fillStyle = '#c9b6f2'; ctx.beginPath(); ctx.arc(px,py,c*0.38,0.4,Math.PI*2-0.4); ctx.lineTo(px,py); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(px+c*0.05,py-c*0.05,c*0.13,0,Math.PI*2); ctx.fill();
+    // fish body, tail to head
+    for (i = fish.length-1; i >= 0; i--){
+      s = fish[i];
+      var t = 1 - (i / (fish.length+2)) * 0.45;
+      var wob = Math.sin((tick - i) * 0.6) * c*0.04;
+      ctx.fillStyle = (i % 3 === 1) ? '#ffffff' : '#ffd60a';
+      ctx.beginPath(); ctx.arc(s.x*c + c/2 + wob*dir.y, s.y*c + c/2 + wob*dir.x, c*0.46*t, 0, Math.PI*2); ctx.fill();
+    }
+    // head details
+    var h = fish[0], hx = h.x*c + c/2, hy = h.y*c + c/2, ox = -dir.y*c*0.2, oy = dir.x*c*0.2, fx = dir.x*c*0.15, fy = dir.y*c*0.15;
+    ctx.fillStyle = '#111111';
+    ctx.beginPath(); ctx.arc(hx+fx+ox, hy+fy+oy, c*0.08, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx+fx-ox, hy+fy-oy, c*0.08, 0, Math.PI*2); ctx.fill();
+  }
+
+  // input
+  window.addEventListener('keydown', function(e){
+    var k = e.key.toLowerCase(), m = {arrowup:[0,-1],w:[0,-1],'ц':[0,-1],arrowdown:[0,1],s:[0,1],'ы':[0,1],
+      arrowleft:[-1,0],a:[-1,0],'ф':[-1,0],arrowright:[1,0],d:[1,0],'в':[1,0]};
+    if (m[k]){ e.preventDefault(); if (state === 'ready' || state === 'over') return; setDir(m[k][0], m[k][1]); }
+    else if (k === ' '){ e.preventDefault(); if (state === 'playing' || state === 'paused') pause(); }
+  });
+  var tx = 0, ty = 0;
+  cv.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+  cv.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0); else setDir(0, dy > 0 ? 1 : -1);
+  }, {passive:true});
+  goBtn.addEventListener('click', function(){ if (state === 'paused') pause(); else start(); });
+  window.addEventListener('resize', resize);
+  pzBtn.addEventListener('click', function(){ pause(); this.blur(); });
+  [].forEach.call(dp.querySelectorAll('button'), function(b){
+    b.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      if (state !== 'playing') return;
+      var d = DIRS[b.getAttribute('data-d')]; setDir(d[0], d[1]);
     });
-    box.appendChild(d);
-  });
-  }
-
-  [].forEach.call(document.querySelectorAll('.slot:not(.live)'), function(s){
-    s.addEventListener('click', function(){ flash(s, false); });
-  });
-  var live = document.querySelector('.slot.live');
-  live.addEventListener('click', function(e){
-    e.preventDefault(); flash(live, true);
-    setTimeout(function(){ location.href = live.getAttribute('href'); }, 280);
   });
 
-  apply(); route();
+  reset(); applyLang(); resize();
 })();
 </script>
 </body>
