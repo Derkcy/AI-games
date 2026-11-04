@@ -94,7 +94,7 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
     <h2 data-i18n="games">Игры</h2>
     <div class="grid">
       <a class="slot live" href="koi/"><span class="ico">🐟</span><div><b>Карп в пруду</b><br><small data-i18n="play">Играть</small></div></a>
-      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 2</small></div></div>
+      <a class="slot live" href="tower/"><span class="ico">🏰</span><div><b data-i18n="tdName">Башня тьмы</b><br><small data-i18n="play">Играть</small></div></a>
       <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 3</small></div></div>
       <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 4</small></div></div>
       <div class="slot wide"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 5</small></div></div>
@@ -147,11 +147,11 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
   function owned(){ try { return JSON.parse(get('hub-skins', '[]')); } catch (e) { return []; } }
   var views = ['home','shop','profile','settings'];
   var T = {
-    ru: {title:'Игровой пруд',games:'Игры',play:'Играть',soon:'Скоро',slot:'Слот',account:'Твой аккаунт',shop:'Магазин',shopSub:'Скины за монеты',
+    ru: {title:'Игровой пруд',tdName:'Башня тьмы',games:'Игры',play:'Играть',soon:'Скоро',slot:'Слот',account:'Твой аккаунт',shop:'Магазин',shopSub:'Скины за монеты',
       profile:'Профиль',profileSub:'Ник и статистика',back:'← Назад',shopTitle:'Магазин скинов',nick:'Твой ник',save:'Сохранить ник',stats:'Статистика',
       coinsL:'монет',record:'рекорд в «Карпе»',level:'уровень',xp:'опыта',ownedL:'скинов куплено',language:'Язык',settings:'Настройки',player:'Игрок',
       buy:'Купить',bought:'Куплено',noCoins:'Не хватает монет',skins:['Золотой карп','Белый карп','Розовый карп','Ночной пруд','Лотос','Закат']},
-    en: {title:'Game Pond',games:'Games',play:'Play',soon:'Soon',slot:'Slot',account:'Your account',shop:'Shop',shopSub:'Skins for coins',
+    en: {title:'Game Pond',tdName:'Dark Tower',games:'Games',play:'Play',soon:'Soon',slot:'Slot',account:'Your account',shop:'Shop',shopSub:'Skins for coins',
       profile:'Profile',profileSub:'Name and stats',back:'← Back',shopTitle:'Skin shop',nick:'Your name',save:'Save name',stats:'Stats',
       coinsL:'coins',record:'best in Koi',level:'level',xp:'XP',ownedL:'skins bought',language:'Language',settings:'Settings',player:'Player',
       buy:'Buy',bought:'Owned',noCoins:'Not enough coins',skins:['Golden koi','White koi','Pink koi','Night pond','Lotus','Sunset']}
