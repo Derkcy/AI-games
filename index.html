@@ -29,7 +29,7 @@ a{color:inherit;text-decoration:none}
 .who{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0;color:inherit}
 .who b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lvl{height:6px;border-radius:3px;background:rgba(255,255,255,.2);margin-top:7px;overflow:hidden}
-.lvl i{display:block;height:100%;width:15%;background:var(--coin)}
+.lvl i{display:block;height:100%;width:0;background:var(--coin)}
 .coins{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border-radius:999px;padding:8px 12px;font-weight:700;font-size:14px}
 .coin{width:16px;height:16px;border-radius:50%;background:var(--coin);display:inline-block;box-shadow:inset 0 0 0 3px #c98f10}
 
@@ -65,6 +65,16 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
 .stat{background:var(--card);border-radius:16px;padding:14px}
 .stat b{display:block;font-size:20px}.stat span{font-size:11px;color:var(--muted)}
 .save{border:0;border-radius:999px;padding:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:14px}
+.gear{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#f3e9d2;display:grid;place-items:center;font-size:20px;flex:none;padding:0}
+.langs{display:flex;gap:8px}
+.langs button{flex:1;border:2px solid var(--line);border-radius:999px;padding:11px;background:var(--card);font-weight:600;font-size:13px}
+.langs button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.modal{position:fixed;inset:0;z-index:10;background:rgba(17,17,17,.72);display:grid;place-items:center;padding:20px}
+.modal[hidden]{display:none}
+.modal .box{background:var(--card);border-radius:24px;padding:22px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:12px;text-align:center}
+.modal h3{margin:0 0 4px;font-size:17px}
+.modal .langs{flex-direction:column}
+.modal .langs button{padding:16px;font-size:15px}
 @keyframes okf{0%,65%{background:#22c55e;color:#fff;border-color:#22c55e}}
 @keyframes errf{0%,65%{background:#ef4444;color:#fff;border-color:#ef4444}}
 .ok{animation:okf .7s}.err{animation:errf .7s}
@@ -75,49 +85,59 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
 <main>
   <section class="view on" id="home">
     <div class="top">
-      <button class="avatar" data-go="profile" aria-label="Профиль">🐟</button>
-      <button class="who" data-go="profile"><b id="nick">Игрок</b><div class="lvl"><i></i></div></button>
+      <button class="avatar" data-go="profile" data-i18n-aria="profile" aria-label="Профиль">🐟</button>
+      <button class="who" data-go="profile"><b id="nick">Игрок</b><div class="lvl"><i id="lvlbar"></i></div></button>
       <div class="coins"><span class="coin"></span><span id="coins">0</span></div>
+      <button class="gear" data-go="settings" data-i18n-aria="settings" aria-label="Настройки">⚙️</button>
     </div>
 
-    <h2>Игры</h2>
+    <h2 data-i18n="games">Игры</h2>
     <div class="grid">
-      <a class="slot live" href="koi/"><span class="ico">🐟</span><div><b>Карп в пруду</b><br><small>Играть</small></div></a>
-      <div class="slot"><span class="ico">+</span><div><b>Скоро</b><br><small>Слот 2</small></div></div>
-      <div class="slot"><span class="ico">+</span><div><b>Скоро</b><br><small>Слот 3</small></div></div>
-      <div class="slot"><span class="ico">+</span><div><b>Скоро</b><br><small>Слот 4</small></div></div>
-      <div class="slot wide"><span class="ico">+</span><div><b>Скоро</b><br><small>Слот 5</small></div></div>
+      <a class="slot live" href="koi/"><span class="ico">🐟</span><div><b>Карп в пруду</b><br><small data-i18n="play">Играть</small></div></a>
+      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 2</small></div></div>
+      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 3</small></div></div>
+      <div class="slot"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 4</small></div></div>
+      <div class="slot wide"><span class="ico">+</span><div><b data-i18n="soon">Скоро</b><br><small><span data-i18n="slot">Слот</span> 5</small></div></div>
     </div>
 
-    <h2>Твой аккаунт</h2>
+    <h2 data-i18n="account">Твой аккаунт</h2>
     <div class="pair">
-      <button class="big shop" data-go="shop">Магазин<span>Скины за монеты</span></button>
-      <button class="big prof" data-go="profile">Профиль<span>Ник и статистика</span></button>
+      <button class="big shop" data-go="shop"><b data-i18n="shop">Магазин</b><span data-i18n="shopSub">Скины за монеты</span></button>
+      <button class="big prof" data-go="profile"><b data-i18n="profile">Профиль</b><span data-i18n="profileSub">Ник и статистика</span></button>
     </div>
   </section>
 
   <section class="view" id="shop">
-    <button class="back" data-go="home">← Назад</button>
-    <div class="top" style="margin-bottom:14px"><b style="flex:1">Магазин скинов</b><div class="coins"><span class="coin"></span><span class="bal">0</span></div></div>
+    <button class="back" data-go="home" data-i18n="back">← Назад</button>
+    <div class="top" style="margin-bottom:14px"><b style="flex:1" data-i18n="shopTitle">Магазин скинов</b><div class="coins"><span class="coin"></span><span class="bal">0</span></div></div>
     <div class="skins" id="skins"></div>
   </section>
 
   <section class="view" id="profile">
-    <button class="back" data-go="home">← Назад</button>
+    <button class="back" data-go="home" data-i18n="back">← Назад</button>
     <div class="panel">
-      <label for="name">Твой ник</label>
-      <input id="name" maxlength="16" placeholder="Игрок" autocomplete="off">
-      <button class="save" id="save">Сохранить ник</button>
+      <label for="name" data-i18n="nick">Твой ник</label>
+      <input id="name" maxlength="16" placeholder="Игрок" data-i18n-ph="player" autocomplete="off">
+      <button class="save" id="save" data-i18n="save">Сохранить ник</button>
     </div>
-    <h2>Статистика</h2>
+    <div class="panel" style="margin-top:12px"><label data-i18n="language">Язык</label><div class="langs"><button data-lang="ru">Русский</button><button data-lang="en">English</button></div></div>
+    <h2 data-i18n="stats">Статистика</h2>
     <div class="stats">
-      <div class="stat"><b class="bal">0</b><span>монет</span></div>
-      <div class="stat"><b id="rec">0</b><span>рекорд в «Карпе»</span></div>
-      <div class="stat"><b>1</b><span>уровень</span></div>
-      <div class="stat"><b id="owned">0</b><span>скинов куплено</span></div>
+      <div class="stat"><b class="bal">0</b><span data-i18n="coinsL">монет</span></div>
+      <div class="stat"><b id="rec">0</b><span data-i18n="record">рекорд в «Карпе»</span></div>
+      <div class="stat"><b id="lvl">1</b><span id="lvlsub">уровень</span></div>
+      <div class="stat"><b id="owned">0</b><span data-i18n="ownedL">скинов куплено</span></div>
     </div>
   </section>
+  <section class="view" id="settings">
+    <button class="back" data-go="home" data-i18n="back">← Назад</button>
+    <h2 data-i18n="settings" style="margin-top:8px">Настройки</h2>
+    <div class="panel"><label data-i18n="language">Язык</label><div class="langs"><button data-lang="ru">Русский</button><button data-lang="en">English</button></div></div>
+  </section>
 </main>
+<div class="modal" id="langModal" hidden role="dialog" aria-modal="true" aria-label="Language">
+  <div class="box"><h3>Выбери язык / Choose language</h3><div class="langs"><button data-lang="ru">Русский</button><button data-lang="en">English</button></div></div>
+</div>
 
 <script>
 (function(){
@@ -125,7 +145,36 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
   function set(k, v){ try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
   function flash(el, ok){ el.classList.remove('ok','err'); void el.offsetWidth; el.classList.add(ok ? 'ok' : 'err'); }
   function owned(){ try { return JSON.parse(get('hub-skins', '[]')); } catch (e) { return []; } }
-  var views = ['home','shop','profile'];
+  var views = ['home','shop','profile','settings'];
+  var T = {
+    ru: {title:'Игровой пруд',games:'Игры',play:'Играть',soon:'Скоро',slot:'Слот',account:'Твой аккаунт',shop:'Магазин',shopSub:'Скины за монеты',
+      profile:'Профиль',profileSub:'Ник и статистика',back:'← Назад',shopTitle:'Магазин скинов',nick:'Твой ник',save:'Сохранить ник',stats:'Статистика',
+      coinsL:'монет',record:'рекорд в «Карпе»',level:'уровень',xp:'опыта',ownedL:'скинов куплено',language:'Язык',settings:'Настройки',player:'Игрок',
+      buy:'Купить',bought:'Куплено',noCoins:'Не хватает монет',skins:['Золотой карп','Белый карп','Розовый карп','Ночной пруд','Лотос','Закат']},
+    en: {title:'Game Pond',games:'Games',play:'Play',soon:'Soon',slot:'Slot',account:'Your account',shop:'Shop',shopSub:'Skins for coins',
+      profile:'Profile',profileSub:'Name and stats',back:'← Back',shopTitle:'Skin shop',nick:'Your name',save:'Save name',stats:'Stats',
+      coinsL:'coins',record:'best in Koi',level:'level',xp:'XP',ownedL:'skins bought',language:'Language',settings:'Settings',player:'Player',
+      buy:'Buy',bought:'Owned',noCoins:'Not enough coins',skins:['Golden koi','White koi','Pink koi','Night pond','Lotus','Sunset']}
+  };
+  var lang = get('hub-lang', ''), firstVisit = lang !== 'ru' && lang !== 'en';
+  if (firstVisit) lang = /^ru/i.test(navigator.language || '') ? 'ru' : 'en';
+  function t(k){ return T[lang][k]; }
+  function qsa(sel){ return [].slice.call(document.querySelectorAll(sel)); }
+  function apply(){
+    document.documentElement.lang = lang; document.title = t('title');
+    qsa('[data-i18n]').forEach(function(n){ n.textContent = t(n.getAttribute('data-i18n')); });
+    qsa('[data-i18n-ph]').forEach(function(n){ n.placeholder = t(n.getAttribute('data-i18n-ph')); });
+    qsa('[data-i18n-aria]').forEach(function(n){ n.setAttribute('aria-label', t(n.getAttribute('data-i18n-aria'))); });
+    qsa('[data-lang]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-lang') === lang); });
+    fill(); renderSkins();
+  }
+  var modal = document.getElementById('langModal'); modal.hidden = !firstVisit;
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-lang]'); if (!b) return;
+    lang = b.getAttribute('data-lang'); var ok = set('hub-lang', lang); apply();
+    qsa('[data-lang]').forEach(function(x){ if (x.getAttribute('data-lang') === lang) flash(x, ok); });
+    if (b.closest('#langModal')) setTimeout(function(){ modal.hidden = true; }, 350);
+  });
 
   function show(name){
     if (views.indexOf(name) < 0) name = 'home';
@@ -141,43 +190,47 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
   window.addEventListener('hashchange', route);
 
   function fill(){
-    var nick = get('hub-nick', 'Игрок'), coins = get('hub-coins', '0');
-    document.getElementById('nick').textContent = nick;
-    document.getElementById('name').value = nick === 'Игрок' ? '' : nick;
+    var raw = get('hub-nick', ''), custom = raw && raw !== 'Игрок' ? raw : '', coins = get('hub-coins', '0');
+    document.getElementById('nick').textContent = custom || t('player');
+    document.getElementById('name').value = custom;
     document.getElementById('coins').textContent = coins;
     [].forEach.call(document.querySelectorAll('.bal'), function(n){ n.textContent = coins; });
     document.getElementById('rec').textContent = get('koi-best', '0');
     document.getElementById('owned').textContent = owned().length;
+    var fr = parseInt(get('hub-fruits', '0'), 10) || 0, lv = Math.floor(fr / 1000) + 1, into = fr % 1000;
+    document.getElementById('lvl').textContent = lv;
+    document.getElementById('lvlsub').textContent = t('level') + ' · ' + (into / 10).toFixed(1) + ' / 100 ' + t('xp');
+    document.getElementById('lvlbar').style.width = (into / 10) + '%';
   }
   document.getElementById('save').addEventListener('click', function(){
-    var v = document.getElementById('name').value.trim() || 'Игрок';
+    var v = document.getElementById('name').value.trim();
     flash(this, set('hub-nick', v)); fill();
   });
 
-  var names = ['Золотой карп','Белый карп','Розовый карп','Ночной пруд','Лотос','Закат'];
   var icons = ['🐠','🐟','🌸','🌙','🪷','🌅'];
   var prices = [50,80,120,150,200,300];
   var box = document.getElementById('skins');
-  names.forEach(function(n,i){
+  function renderSkins(){ box.innerHTML = ''; T[lang].skins.forEach(function(n,i){
     var d = document.createElement('div'); d.className = 'skin';
     d.innerHTML = '<div class="pic">'+icons[i]+'</div><b>'+n+'</b><div class="price"><span class="coin"></span>'+prices[i]+'</div><button></button>';
     var btn = d.querySelector('button');
-    btn.textContent = owned().indexOf(i) > -1 ? 'Куплено' : 'Купить';
+    btn.textContent = owned().indexOf(i) > -1 ? t('bought') : t('buy');
     btn.addEventListener('click', function(){
       var have = owned();
       if (have.indexOf(i) > -1) return;
       var coins = parseInt(get('hub-coins','0'), 10) || 0;
       if (coins < prices[i]){
-        flash(btn, false); btn.textContent = 'Не хватает монет';
-        setTimeout(function(){ btn.textContent = 'Купить'; }, 1400); return;
+        flash(btn, false); btn.textContent = t('noCoins');
+        setTimeout(function(){ btn.textContent = t('buy'); }, 1400); return;
       }
       have.push(i);
       var ok = set('hub-coins', String(coins - prices[i])) && set('hub-skins', JSON.stringify(have));
       flash(btn, ok);
-      if (ok){ btn.textContent = 'Куплено'; fill(); }
+      if (ok){ btn.textContent = t('bought'); fill(); }
     });
     box.appendChild(d);
   });
+  }
 
   [].forEach.call(document.querySelectorAll('.slot:not(.live)'), function(s){
     s.addEventListener('click', function(){ flash(s, false); });
@@ -188,7 +241,7 @@ h2{font-size:15px;font-weight:600;margin:22px 4px 10px}
     setTimeout(function(){ location.href = live.getAttribute('href'); }, 280);
   });
 
-  fill(); route();
+  apply(); route();
 })();
 </script>
 </body>
